@@ -1,5 +1,5 @@
 import './globals.css'
-import navbar from '@/components/navbar'
+import navbar from '../components/navbar'
 
 export const metadata = {
   title: 'Your Name | Tutor & Coach',
