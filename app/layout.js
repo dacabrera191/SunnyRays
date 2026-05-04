@@ -1,5 +1,5 @@
 import './globals.css'
-import Navbar from '@/components/Navbar'
+import navbar from '@/components/navbar'
 
 export const metadata = {
   title: 'Your Name | Tutor & Coach',
@@ -10,7 +10,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <Navbar />
+        <navbar />
         <main className="pt-[70px]">
           {children}
         </main>
