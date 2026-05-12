@@ -1,9 +1,10 @@
+import './theme.css'
 import './globals.css'
-import Navbar from '@/components/navbar'
+import Navbar from '@/components/Navbar'
 
 export const metadata = {
-  title: 'Your Name | Tutor & Coach',
-  description: 'Academic tutoring and coaching services',
+  title: 'Sunny Rays Swim School',
+  description: 'Swim lessons and coaching for all ages',
 }
 
 export default function RootLayout({ children }) {

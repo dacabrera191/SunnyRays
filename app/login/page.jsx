@@ -5,20 +5,6 @@ import { useRouter } from "next/navigation";
 
 const SWIM_LEVELS = ["No experience", "Beginner", "Intermediate", "Advanced"];
 
-interface Kid {
-    name: string;
-    age: string;
-    swimLevel: string;
-}
-
-interface FormData {
-    parentName: string;
-    email: string;
-    phone: string;
-    poolLocation: string;
-    kids: Kid[];
-}
-
 export default function SignupPage() {
     const router = useRouter();
     const [step, setStep] = useState(1);
@@ -26,7 +12,7 @@ export default function SignupPage() {
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState("");
 
-    const [form, setForm] = useState < FormData > ({
+    const [form, setForm] = useState({
         parentName: "",
         email: "",
         phone: "",
@@ -34,11 +20,11 @@ export default function SignupPage() {
         kids: [{ name: "", age: "", swimLevel: "" }],
     });
 
-    const updateField = (field: keyof Omit<FormData, "kids">, value: string) => {
+    const updateField = (field, value) => {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
 
-    const updateKid = (index: number, field: keyof Kid, value: string) => {
+    const updateKid = (index, field, value) => {
         setForm((prev) => {
             const kids = [...prev.kids];
             kids[index] = { ...kids[index], [field]: value };
@@ -53,7 +39,7 @@ export default function SignupPage() {
         }));
     };
 
-    const removeKid = (index: number) => {
+    const removeKid = (index) => {
         setForm((prev) => ({
             ...prev,
             kids: prev.kids.filter((_, i) => i !== index),
@@ -72,7 +58,7 @@ export default function SignupPage() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Something went wrong");
             setSuccess(true);
-        } catch (err: any) {
+        } catch (err) {
             setError(err.message);
         } finally {
             setSubmitting(false);
@@ -103,7 +89,7 @@ export default function SignupPage() {
                 </div>
                 <div className="wave-divider">
                     <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
-                        <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z" fill="var(--cream)" />
+                        <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z" fill="var(--color-bg)" />
                     </svg>
                 </div>
             </div>
@@ -249,39 +235,27 @@ export default function SignupPage() {
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap');
 
-  :root {
-    --ocean: #0e6e8c;
-    --ocean-dark: #094f66;
-    --sky: #b8e4f2;
-    --foam: #e8f7fc;
-    --cream: #faf8f4;
-    --sand: #e8dcc8;
-    --text: #1a2e38;
-    --muted: #5c7a87;
-    --radius: 16px;
-  }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   .page {
     min-height: 100vh;
-    background: var(--cream);
+    background: var(--color-bg);
     font-family: 'DM Sans', sans-serif;
-    color: var(--text);
+    color: var(--color-text);
   }
 
   /* Hero */
   .hero {
     position: relative;
-    background: linear-gradient(135deg, var(--ocean-dark) 0%, var(--ocean) 50%, #1a9abf 100%);
+    background: linear-gradient(135deg, var(--sr-navy-deep) 0%, var(--sr-navy) 45%, var(--sr-ocean) 100%);
     padding: 80px 24px 100px;
     overflow: hidden;
   }
   .hero-bg {
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.06) 0%, transparent 60%),
-      radial-gradient(circle at 80% 20%, rgba(255,255,255,0.04) 0%, transparent 50%);
+    background-image: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.08) 0%, transparent 60%),
+      radial-gradient(circle at 80% 20%, rgba(245,197,24,0.10) 0%, transparent 55%);
   }
   .hero-content {
     position: relative;
@@ -296,9 +270,9 @@ const styles = `
     font-weight: 500;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--sky);
+    color: var(--sr-sun);
     margin-bottom: 16px;
-    border: 1px solid rgba(184,228,242,0.35);
+    border: 1px solid rgba(245,197,24,0.4);
     padding: 5px 14px;
     border-radius: 100px;
   }
@@ -306,13 +280,13 @@ const styles = `
     font-family: 'Playfair Display', serif;
     font-size: clamp(56px, 10vw, 88px);
     font-weight: 900;
-    color: #fff;
+    color: var(--color-text-inverse);
     line-height: 1;
     letter-spacing: -0.02em;
   }
   .hero-sub {
     margin-top: 16px;
-    color: rgba(255,255,255,0.75);
+    color: rgba(255,255,255,0.8);
     font-size: 17px;
     font-weight: 300;
     line-height: 1.6;
@@ -345,29 +319,30 @@ const styles = `
     font-weight: 500;
     padding: 6px 16px;
     border-radius: 100px;
-    border: 1.5px solid var(--sand);
-    color: var(--muted);
+    border: 1.5px solid var(--color-border);
+    color: var(--color-text-muted);
     transition: all 0.25s ease;
+    background: var(--color-surface);
   }
   .pill.active {
-    background: var(--ocean);
-    border-color: var(--ocean);
-    color: #fff;
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-primary-contrast);
   }
   .connector {
     flex: 1;
     max-width: 48px;
     height: 1.5px;
-    background: var(--sand);
+    background: var(--color-border);
   }
 
   /* Card */
   .card {
-    background: #fff;
-    border-radius: var(--radius);
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
     padding: 36px;
-    box-shadow: 0 2px 24px rgba(14,110,140,0.08), 0 1px 4px rgba(0,0,0,0.04);
-    border: 1px solid rgba(232,220,200,0.5);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--color-border);
   }
   .animate-in {
     animation: fadeUp 0.35s ease both;
@@ -381,11 +356,11 @@ const styles = `
     font-family: 'Playfair Display', serif;
     font-size: 26px;
     font-weight: 700;
-    color: var(--ocean-dark);
+    color: var(--sr-navy);
     margin-bottom: 6px;
   }
   .section-hint {
-    color: var(--muted);
+    color: var(--color-text-muted);
     font-size: 14px;
     margin-bottom: 24px;
   }
@@ -400,35 +375,35 @@ const styles = `
   label span {
     font-size: 13px;
     font-weight: 500;
-    color: var(--muted);
+    color: var(--color-text-muted);
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
   input, select {
     font-family: 'DM Sans', sans-serif;
     font-size: 15px;
-    color: var(--text);
-    background: var(--foam);
-    border: 1.5px solid var(--sky);
-    border-radius: 10px;
+    color: var(--color-text);
+    background: var(--sr-mist);
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-sm);
     padding: 11px 14px;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
     width: 100%;
     appearance: none;
   }
   input:focus, select:focus {
-    border-color: var(--ocean);
-    box-shadow: 0 0 0 3px rgba(14,110,140,0.12);
-    background: #fff;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(31,132,176,0.15);
+    background: var(--color-surface);
   }
-  input::placeholder { color: #aac4cf; }
+  input::placeholder { color: var(--color-text-muted); opacity: 0.6; }
 
   /* Kid blocks */
   .kid-block {
-    background: var(--foam);
-    border: 1px solid var(--sky);
-    border-radius: 12px;
+    background: var(--sr-mist);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
     padding: 20px;
     margin-bottom: 16px;
   }
@@ -441,7 +416,7 @@ const styles = `
   .kid-label {
     font-size: 13px;
     font-weight: 600;
-    color: var(--ocean);
+    color: var(--color-primary);
     text-transform: uppercase;
     letter-spacing: 0.08em;
   }
@@ -450,35 +425,35 @@ const styles = `
     border: none;
     cursor: pointer;
     font-size: 12px;
-    color: #c0392b;
+    color: var(--color-danger);
     font-family: 'DM Sans', sans-serif;
     padding: 4px 8px;
     border-radius: 6px;
     transition: background 0.15s;
   }
-  .remove-btn:hover { background: rgba(192,57,43,0.08); }
-  .kid-block label span { color: var(--muted); }
-  .kid-block input, .kid-block select { background: #fff; }
+  .remove-btn:hover { background: rgba(217,75,75,0.08); }
+  .kid-block label span { color: var(--color-text-muted); }
+  .kid-block input, .kid-block select { background: var(--color-surface); }
 
   /* Buttons */
   .btn-primary {
     width: 100%;
     margin-top: 8px;
     padding: 14px;
-    background: var(--ocean);
-    color: #fff;
+    background: var(--color-primary);
+    color: var(--color-primary-contrast);
     border: none;
-    border-radius: 12px;
+    border-radius: var(--radius-md);
     font-family: 'DM Sans', sans-serif;
     font-size: 16px;
     font-weight: 500;
     cursor: pointer;
     transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-    box-shadow: 0 4px 16px rgba(14,110,140,0.3);
+    box-shadow: 0 4px 16px rgba(31,132,176,0.3);
   }
   .btn-primary:hover:not(:disabled) {
-    background: var(--ocean-dark);
-    box-shadow: 0 6px 20px rgba(14,110,140,0.4);
+    background: var(--color-primary-hover);
+    box-shadow: 0 6px 20px rgba(31,132,176,0.4);
     transform: translateY(-1px);
   }
   .btn-primary:disabled {
@@ -490,9 +465,9 @@ const styles = `
     width: 100%;
     padding: 12px;
     background: transparent;
-    color: var(--ocean);
-    border: 1.5px dashed var(--sky);
-    border-radius: 12px;
+    color: var(--color-primary);
+    border: 1.5px dashed var(--sr-sky);
+    border-radius: var(--radius-md);
     font-family: 'DM Sans', sans-serif;
     font-size: 15px;
     font-weight: 500;
@@ -500,7 +475,7 @@ const styles = `
     margin-bottom: 24px;
     transition: background 0.2s, border-color 0.2s;
   }
-  .btn-add:hover { background: var(--foam); border-color: var(--ocean); }
+  .btn-add:hover { background: var(--sr-mist); border-color: var(--color-primary); }
   .btn-row {
     display: flex;
     gap: 12px;
@@ -510,23 +485,23 @@ const styles = `
     flex: 0 0 auto;
     padding: 14px 20px;
     background: transparent;
-    color: var(--muted);
-    border: 1.5px solid var(--sand);
-    border-radius: 12px;
+    color: var(--color-text-muted);
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-md);
     font-family: 'DM Sans', sans-serif;
     font-size: 15px;
     cursor: pointer;
     transition: border-color 0.2s, color 0.2s;
   }
-  .btn-back:hover { border-color: var(--ocean); color: var(--ocean); }
+  .btn-back:hover { border-color: var(--color-primary); color: var(--color-primary); }
   .btn-row .btn-primary { flex: 1; margin-top: 0; }
 
   /* Error */
   .error-msg {
-    background: #fef0ee;
-    border: 1px solid #f5c6c0;
-    color: #c0392b;
-    border-radius: 8px;
+    background: rgba(217,75,75,0.08);
+    border: 1px solid rgba(217,75,75,0.3);
+    color: var(--color-danger);
+    border-radius: var(--radius-sm);
     padding: 10px 14px;
     font-size: 14px;
     margin-bottom: 12px;
@@ -536,19 +511,19 @@ const styles = `
   .success-card {
     max-width: 480px;
     margin: 120px auto;
-    background: #fff;
-    border-radius: var(--radius);
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
     padding: 56px 40px;
     text-align: center;
-    box-shadow: 0 2px 32px rgba(14,110,140,0.1);
+    box-shadow: var(--shadow-lg);
     animation: fadeUp 0.4s ease both;
   }
   .wave-icon { font-size: 56px; margin-bottom: 20px; }
   .success-card h2 {
     font-family: 'Playfair Display', serif;
     font-size: 32px;
-    color: var(--ocean-dark);
+    color: var(--sr-navy);
     margin-bottom: 12px;
   }
-  .success-card p { color: var(--muted); font-size: 16px; line-height: 1.6; }
+  .success-card p { color: var(--color-text-muted); font-size: 16px; line-height: 1.6; }
 `;

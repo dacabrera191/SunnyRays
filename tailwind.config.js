@@ -1,26 +1,63 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    './app/**/*.{js,ts,jsx,tsx}',
-    './components/**/*.{js,ts,jsx,tsx}',
+    "./app/**/*.{js,jsx}",
+    "./pages/**/*.{js,jsx}",
+    "./components/**/*.{js,jsx}",
   ],
   theme: {
     extend: {
       colors: {
-        cream: '#fdf6ee',
-        warmwhite: '#fffaf4',
-        terracotta: '#c4704f',
-        'terracotta-light': '#e8956d',
-        brown: '#5c3d2e',
-        'brown-light': '#8c6a57',
-        sage: '#8aab8a',
-        'sage-light': '#c2d9c2',
+        // Brand palette (raw names — match theme.css)
+        sky: {
+          DEFAULT: "var(--sr-sky)",
+        },
+        ocean: "var(--sr-ocean)",
+        navy: {
+          DEFAULT: "var(--sr-navy)",
+          deep: "var(--sr-navy-deep)",
+        },
+        sun: {
+          DEFAULT: "var(--sr-sun)",
+          soft: "var(--sr-sun-soft)",
+        },
+        coral: "var(--sr-coral)",
+        cream: "var(--sr-cream)",
+        mist: "var(--sr-mist)",
+
+        // Semantic tokens (USE THESE in components)
+        primary: {
+          DEFAULT: "var(--color-primary)",
+          hover: "var(--color-primary-hover)",
+          contrast: "var(--color-primary-contrast)",
+        },
+        secondary: {
+          DEFAULT: "var(--color-secondary)",
+          hover: "var(--color-secondary-hover)",
+        },
+        accent: {
+          DEFAULT: "var(--color-accent)",
+          hover: "var(--color-accent-hover)",
+          contrast: "var(--color-accent-contrast)",
+        },
+        highlight: "var(--color-highlight)",
+        surface: {
+          DEFAULT: "var(--color-surface)",
+          alt: "var(--color-surface-alt)",
+        },
+        ink: {
+          DEFAULT: "var(--color-text)",
+          muted: "var(--color-text-muted)",
+          inverse: "var(--color-text-inverse)",
+        },
       },
-      fontFamily: {
-        lora: ['Lora', 'serif'],
-        nunito: ['Nunito', 'sans-serif'],
+      borderColor: {
+        DEFAULT: "var(--color-border)",
+      },
+      backgroundColor: {
+        page: "var(--color-bg)",
       },
     },
   },
   plugins: [],
-}
+};

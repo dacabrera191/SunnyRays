@@ -27,7 +27,6 @@ export default function Calendar() {
   const [viewDate, setViewDate] = useState({ year: today.getFullYear(), month: today.getMonth() });
   const [selectedDate, setSelectedDate] = useState(null);
   const [bookedSlots, setBookedSlots] = useState({});
-  const [hoveredSlot, setHoveredSlot] = useState(null);
 
   const { year, month } = viewDate;
   const daysInMonth = getDaysInMonth(year, month);
@@ -86,34 +85,24 @@ export default function Calendar() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&display=swap');
 
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-          background: #0e0e0e;
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 2rem;
-          font-family: 'DM Mono', monospace;
-        }
-
         .cal-root {
           display: flex;
           gap: 0;
           max-width: 860px;
           width: 100%;
-          border: 1px solid #2a2a2a;
-          border-radius: 2px;
+          margin: 0 auto;
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-md);
           overflow: hidden;
-          box-shadow: 0 0 80px rgba(0,0,0,0.6), 0 0 0 1px #1a1a1a;
+          box-shadow: var(--shadow-lg);
+          font-family: 'DM Mono', monospace;
         }
 
         .cal-left {
           flex: 0 0 360px;
-          background: #111;
+          background: var(--color-surface);
           padding: 2rem;
-          border-right: 1px solid #1e1e1e;
+          border-right: 1px solid var(--color-border);
         }
 
         .cal-header {
@@ -126,12 +115,12 @@ export default function Calendar() {
         .cal-title {
           font-family: 'DM Serif Display', serif;
           font-size: 1.4rem;
-          color: #f0ede6;
+          color: var(--color-text);
           letter-spacing: 0.01em;
         }
 
         .cal-title span {
-          color: #c9a96e;
+          color: var(--color-primary);
           font-style: italic;
         }
 
@@ -142,11 +131,11 @@ export default function Calendar() {
 
         .cal-nav button {
           background: none;
-          border: 1px solid #2a2a2a;
-          color: #666;
+          border: 1px solid var(--color-border);
+          color: var(--color-text-muted);
           width: 28px;
           height: 28px;
-          border-radius: 2px;
+          border-radius: var(--radius-sm);
           cursor: pointer;
           font-size: 0.75rem;
           display: flex;
@@ -157,8 +146,8 @@ export default function Calendar() {
         }
 
         .cal-nav button:hover {
-          border-color: #c9a96e;
-          color: #c9a96e;
+          border-color: var(--color-primary);
+          color: var(--color-primary);
         }
 
         .cal-days-header {
@@ -170,7 +159,7 @@ export default function Calendar() {
         .cal-days-header span {
           text-align: center;
           font-size: 0.6rem;
-          color: #444;
+          color: var(--color-text-muted);
           letter-spacing: 0.12em;
           text-transform: uppercase;
           padding: 0.4rem 0;
@@ -189,8 +178,8 @@ export default function Calendar() {
           align-items: center;
           justify-content: center;
           font-size: 0.78rem;
-          color: #555;
-          border-radius: 2px;
+          color: var(--color-text);
+          border-radius: var(--radius-sm);
           cursor: pointer;
           transition: all 0.15s;
           position: relative;
@@ -198,40 +187,43 @@ export default function Calendar() {
         }
 
         .cal-cell:hover {
-          background: #1a1a1a;
-          color: #ccc;
+          background: var(--sr-mist);
+          color: var(--color-primary);
         }
 
         .cal-cell.today {
-          color: #c9a96e;
+          color: var(--color-primary);
+          font-weight: 600;
         }
 
         .cal-cell.today::before {
           content: '';
           position: absolute;
           inset: 3px;
-          border: 1px solid #c9a96e22;
-          border-radius: 2px;
+          border: 1px solid var(--color-primary);
+          border-radius: var(--radius-sm);
+          opacity: 0.35;
         }
 
         .cal-cell.selected {
-          background: #c9a96e;
-          color: #0e0e0e;
+          background: var(--color-primary);
+          color: var(--color-primary-contrast);
         }
 
         .cal-cell.selected:hover {
-          background: #d4b47e;
+          background: var(--color-primary-hover);
+          color: var(--color-primary-contrast);
         }
 
         .cal-cell .dot {
-          width: 3px;
-          height: 3px;
+          width: 4px;
+          height: 4px;
           border-radius: 50%;
-          background: #c9a96e;
+          background: var(--color-accent);
         }
 
         .cal-cell.selected .dot {
-          background: #0e0e0e;
+          background: var(--color-primary-contrast);
         }
 
         .cal-cell.empty {
@@ -240,25 +232,25 @@ export default function Calendar() {
 
         .cal-right {
           flex: 1;
-          background: #0d0d0d;
+          background: var(--color-surface-alt);
           display: flex;
           flex-direction: column;
         }
 
         .slots-header {
           padding: 1.5rem 1.75rem 1rem;
-          border-bottom: 1px solid #1a1a1a;
+          border-bottom: 1px solid var(--color-border);
         }
 
         .slots-title {
           font-family: 'DM Serif Display', serif;
           font-size: 1rem;
-          color: #f0ede6;
+          color: var(--color-text);
         }
 
         .slots-subtitle {
           font-size: 0.65rem;
-          color: #444;
+          color: var(--color-text-muted);
           letter-spacing: 0.1em;
           text-transform: uppercase;
           margin-top: 0.25rem;
@@ -269,19 +261,22 @@ export default function Calendar() {
           overflow-y: auto;
           padding: 0.75rem 1.25rem;
           scrollbar-width: thin;
-          scrollbar-color: #2a2a2a transparent;
+          scrollbar-color: var(--color-border) transparent;
         }
 
         .slots-list::-webkit-scrollbar { width: 4px; }
         .slots-list::-webkit-scrollbar-track { background: transparent; }
-        .slots-list::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+        .slots-list::-webkit-scrollbar-thumb {
+          background: var(--color-border);
+          border-radius: 2px;
+        }
 
         .slot-row {
           display: flex;
           align-items: center;
           gap: 0.75rem;
           padding: 0.5rem 0.6rem;
-          border-radius: 2px;
+          border-radius: var(--radius-sm);
           cursor: pointer;
           transition: all 0.12s;
           margin-bottom: 2px;
@@ -289,52 +284,55 @@ export default function Calendar() {
         }
 
         .slot-row:hover {
-          background: #151515;
-          border-color: #222;
+          background: var(--color-surface);
+          border-color: var(--color-border);
         }
 
         .slot-row.booked {
-          background: #1a160c;
-          border-color: #c9a96e33;
+          background: var(--sr-mist);
+          border-color: var(--color-primary);
         }
 
         .slot-row.booked:hover {
-          background: #1e1a0e;
-          border-color: #c9a96e55;
+          background: var(--color-surface);
+          border-color: var(--color-primary-hover);
         }
 
         .slot-time {
           font-size: 0.7rem;
-          color: #444;
+          color: var(--color-text-muted);
           width: 68px;
           flex-shrink: 0;
           letter-spacing: 0.05em;
         }
 
         .slot-row.booked .slot-time {
-          color: #c9a96e;
+          color: var(--color-primary);
+          font-weight: 600;
         }
 
         .slot-line {
           flex: 1;
           height: 1px;
-          background: #1e1e1e;
+          background: var(--color-border);
           transition: background 0.12s;
         }
 
         .slot-row:hover .slot-line {
-          background: #2a2a2a;
+          background: var(--color-primary);
+          opacity: 0.4;
         }
 
         .slot-row.booked .slot-line {
-          background: #c9a96e22;
+          background: var(--color-primary);
+          opacity: 0.4;
         }
 
         .slot-check {
           width: 16px;
           height: 16px;
-          border: 1px solid #2a2a2a;
-          border-radius: 2px;
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-sm);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -345,9 +343,9 @@ export default function Calendar() {
         }
 
         .slot-row.booked .slot-check {
-          background: #c9a96e;
-          border-color: #c9a96e;
-          color: #0e0e0e;
+          background: var(--color-primary);
+          border-color: var(--color-primary);
+          color: var(--color-primary-contrast);
         }
 
         .slots-empty {
@@ -357,32 +355,33 @@ export default function Calendar() {
           justify-content: center;
           height: 100%;
           gap: 0.75rem;
-          color: #2a2a2a;
+          color: var(--color-text-muted);
           padding: 3rem;
           text-align: center;
         }
 
         .slots-empty-icon {
           font-size: 2.5rem;
-          opacity: 0.3;
+          opacity: 0.4;
+          color: var(--color-primary);
         }
 
         .slots-empty-text {
           font-family: 'DM Serif Display', serif;
           font-size: 1.1rem;
-          color: #333;
+          color: var(--color-text);
         }
 
         .slots-empty-sub {
           font-size: 0.65rem;
-          color: #2a2a2a;
+          color: var(--color-text-muted);
           letter-spacing: 0.1em;
           text-transform: uppercase;
         }
 
         .slots-footer {
           padding: 0.75rem 1.75rem;
-          border-top: 1px solid #1a1a1a;
+          border-top: 1px solid var(--color-border);
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -390,23 +389,24 @@ export default function Calendar() {
 
         .slots-count {
           font-size: 0.65rem;
-          color: #444;
+          color: var(--color-text-muted);
           letter-spacing: 0.08em;
           text-transform: uppercase;
         }
 
         .slots-count span {
-          color: #c9a96e;
+          color: var(--color-primary);
+          font-weight: 600;
         }
 
         .clear-btn {
           font-family: 'DM Mono', monospace;
           font-size: 0.65rem;
           background: none;
-          border: 1px solid #2a2a2a;
-          color: #444;
+          border: 1px solid var(--color-border);
+          color: var(--color-text-muted);
           padding: 0.3rem 0.75rem;
-          border-radius: 2px;
+          border-radius: var(--radius-sm);
           cursor: pointer;
           letter-spacing: 0.08em;
           text-transform: uppercase;
@@ -414,8 +414,8 @@ export default function Calendar() {
         }
 
         .clear-btn:hover {
-          border-color: #555;
-          color: #888;
+          border-color: var(--color-danger);
+          color: var(--color-danger);
         }
       `}</style>
 

@@ -22,11 +22,11 @@ export default function Navbar() {
   return (
     <>
       {/* ── Top Bar ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 h-[70px] bg-[#fffaf4] border-b-2 border-[#c2d9c2] shadow-sm">
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 h-[70px] bg-surface border-b-2 border-sky/40 shadow-sm">
 
         {/* Logo */}
-        <Link href="/" className="font-lora text-xl font-semibold text-[#5c3d2e] hover:text-[#c4704f] transition-colors">
-          Sunny<span className="text-[#c4704f]">Rays</span>
+        <Link href="/" className="font-lora text-xl font-semibold text-ink hover:text-primary transition-colors">
+          Sunny<span className="text-primary">Rays</span>
         </Link>
 
         {/* Desktop links */}
@@ -36,11 +36,11 @@ export default function Navbar() {
               <Link
                 href={href}
                 className={`text-sm font-bold uppercase tracking-widest transition-colors relative group
-                  ${pathname === href ? 'text-[#c4704f]' : 'text-[#8c6a57] hover:text-[#c4704f]'}`}
+                  ${pathname === href ? 'text-primary' : 'text-ink-muted hover:text-primary'}`}
               >
                 {label}
                 <span
-                  className={`absolute -bottom-1 left-0 h-0.5 bg-[#c4704f] rounded transition-all duration-300
+                  className={`absolute -bottom-1 left-0 h-0.5 bg-accent rounded transition-all duration-300
                     ${pathname === href ? 'w-full' : 'w-0 group-hover:w-full'}`}
                 />
               </Link>
@@ -55,15 +55,15 @@ export default function Navbar() {
           className="md:hidden flex flex-col gap-[5px] p-1.5 z-[200]"
         >
           <span
-            className={`block w-6 h-[3px] bg-[#5c3d2e] rounded transition-all duration-300
+            className={`block w-6 h-[3px] bg-ink rounded transition-all duration-300
               ${menuOpen ? 'translate-y-2 rotate-45' : ''}`}
           />
           <span
-            className={`block w-6 h-[3px] bg-[#5c3d2e] rounded transition-all duration-300
+            className={`block w-6 h-[3px] bg-ink rounded transition-all duration-300
               ${menuOpen ? 'opacity-0 scale-x-0' : ''}`}
           />
           <span
-            className={`block w-6 h-[3px] bg-[#5c3d2e] rounded transition-all duration-300
+            className={`block w-6 h-[3px] bg-ink rounded transition-all duration-300
               ${menuOpen ? '-translate-y-2 -rotate-45' : ''}`}
           />
         </button>
@@ -73,23 +73,23 @@ export default function Navbar() {
       {/* Backdrop */}
       <div
         onClick={closeMenu}
-        className={`fixed inset-0 z-40 bg-black/30 backdrop-blur-sm transition-opacity duration-300 md:hidden
+        className={`fixed inset-0 z-40 bg-navy/40 backdrop-blur-sm transition-opacity duration-300 md:hidden
           ${menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
       />
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 right-0 z-50 h-full w-[300px] bg-[#fffaf4] shadow-2xl flex flex-col pt-24 px-8 gap-2 transition-transform duration-300 ease-in-out md:hidden
+        className={`fixed top-0 right-0 z-50 h-full w-[300px] bg-surface shadow-2xl flex flex-col pt-24 px-8 gap-2 transition-transform duration-300 ease-in-out md:hidden
           ${menuOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
-        <p className="font-lora italic text-[#8c6a57] text-sm mb-4">Navigation</p>
+        <p className="font-lora italic text-ink-muted text-sm mb-4">Navigation</p>
         {navLinks.map(({ label, href }) => (
           <Link
             key={href}
             href={href}
             onClick={closeMenu}
-            className={`font-bold uppercase tracking-widest text-sm py-3 border-b border-[#c2d9c2] transition-colors
-              ${pathname === href ? 'text-[#c4704f]' : 'text-[#5c3d2e] hover:text-[#c4704f]'}`}
+            className={`font-bold uppercase tracking-widest text-sm py-3 border-b border-sky/40 transition-colors
+              ${pathname === href ? 'text-primary' : 'text-ink hover:text-primary'}`}
           >
             {label}
           </Link>
@@ -99,7 +99,7 @@ export default function Navbar() {
         <Link
           href="/contact"
           onClick={closeMenu}
-          className="mt-8 text-center bg-[#c4704f] text-white font-bold uppercase tracking-widest text-sm py-3 px-6 rounded-full hover:bg-[#e8956d] transition-colors"
+          className="mt-8 text-center bg-primary text-primary-contrast font-bold uppercase tracking-widest text-sm py-3 px-6 rounded-full hover:bg-primary-hover transition-colors"
         >
           Book a Session
         </Link>

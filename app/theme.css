@@ -1,0 +1,98 @@
+/* ============================================================
+   Sunny Rays Swim School — Theme
+   Import this once at the top of app/layout.js (or _app.js):
+       import "./theme.css";
+   Then use the variables anywhere:
+       background: var(--color-primary);
+   ============================================================ */
+
+:root {
+  /* -- Brand palette (raw colors, by name) -- */
+  --sr-sky: #4FB4D8;
+  /* light "pool water" blue */
+  --sr-ocean: #1F84B0;
+  /* mid brand blue */
+  --sr-navy: #0E2A47;
+  /* deep navy (logo outlines, dark bg) */
+  --sr-navy-deep: #081A30;
+  /* darkest navy, for backgrounds */
+  --sr-sun: #F5C518;
+  /* sunny yellow */
+  --sr-sun-soft: #FFD95C;
+  /* lighter yellow for hovers/highlights */
+  --sr-coral: #E87A3E;
+  /* goggle-strap orange accent */
+  --sr-white: #FFFFFF;
+  --sr-cream: #FFF8E7;
+  /* warm off-white surface */
+  --sr-mist: #E6F3F9;
+  /* very pale blue surface */
+
+  /* -- Semantic tokens (USE THESE in your components) -- */
+  --color-bg: var(--sr-mist);
+  --color-surface: var(--sr-white);
+  --color-surface-alt: var(--sr-cream);
+  --color-border: #CFE3EC;
+
+  --color-text: var(--sr-navy);
+  --color-text-muted: #4A6A82;
+  --color-text-inverse: var(--sr-white);
+
+  --color-primary: var(--sr-ocean);
+  --color-primary-hover: #176A8F;
+  --color-primary-contrast: var(--sr-white);
+
+  --color-secondary: var(--sr-sky);
+  --color-secondary-hover: #3AA0C6;
+
+  --color-accent: var(--sr-sun);
+  --color-accent-hover: var(--sr-sun-soft);
+  --color-accent-contrast: var(--sr-navy);
+
+  --color-highlight: var(--sr-coral);
+
+  --color-success: #2EAD6B;
+  --color-warning: var(--sr-sun);
+  --color-danger: #D94B4B;
+
+  /* -- Shape & shadow tokens (optional, keeps the vibe consistent) -- */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  --shadow-sm: 0 1px 2px rgba(14, 42, 71, 0.08);
+  --shadow-md: 0 4px 12px rgba(14, 42, 71, 0.12);
+  --shadow-lg: 0 12px 32px rgba(14, 42, 71, 0.18);
+}
+
+/* Optional dark mode — toggle by setting <html data-theme="dark"> */
+[data-theme="dark"] {
+  --color-bg: var(--sr-navy-deep);
+  --color-surface: var(--sr-navy);
+  --color-surface-alt: #12345A;
+  --color-border: #1E456B;
+
+  --color-text: var(--sr-white);
+  --color-text-muted: #A8C1D4;
+  --color-text-inverse: var(--sr-navy);
+
+  --color-primary: var(--sr-sky);
+  --color-primary-hover: #6EC5E0;
+  --color-primary-contrast: var(--sr-navy);
+}
+
+/* Sensible base styles so the theme is visible immediately.
+   Delete this block if you'd rather control base styles yourself. */
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+a {
+  color: var(--color-primary);
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
