@@ -1,6 +1,6 @@
 import './theme.css'
 import './globals.css'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/navbar'
 
 export const metadata = {
   title: 'Sunny Rays Swim School',
