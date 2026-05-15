@@ -26,7 +26,7 @@ export default function Navbar() {
 
         {/* Logo */}
         <Link href="/" className="font-lora text-xl font-semibold text-ink hover:text-primary transition-colors">
-          Sunny<span className="text-primary">Rays</span>
+          Sunny<span className="text-primary">Rays</span>Swim<span className='text-primary'> School</span>
         </Link>
 
         {/* Desktop links */}
