@@ -6,8 +6,8 @@ import { usePathname } from 'next/navigation'
 
 const navLinks = [
   { label: 'Home', href: '/' },
-  { label: 'About', href: '/about' },
-  { label: 'Login', href: '/login' },
+  { label: 'Instructors', href: '/instructors' },
+  { label: 'Signup/Login', href: '/login' },
   { label: 'Schedule', href: '/schedule' },
   { label: 'Contact', href: '/contact' },
 ]
@@ -95,7 +95,6 @@ export default function Navbar() {
           </Link>
         ))}
 
-        {/* CTA in drawer */}
         <Link
           href="/contact"
           onClick={closeMenu}

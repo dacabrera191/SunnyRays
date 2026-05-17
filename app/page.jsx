@@ -46,7 +46,7 @@ export default function HomePage() {
               Book a Session
             </Link>
             <Link
-              href="/about"
+              href="/instructors"
               className="border-2 border-secondary text-ink font-bold uppercase tracking-widest text-sm py-3 px-7 rounded-full hover:bg-mist transition-colors"
             >
               Learn More
@@ -81,7 +81,7 @@ export default function HomePage() {
         <p className="uppercase tracking-widest text-xs mb-4">Swim Instructor &amp; Coach</p>
         <div className="flex justify-center gap-6 text-xs uppercase tracking-widest">
           <Link href="/" className="hover:text-white transition-colors">Home</Link>
-          <Link href="/about" className="hover:text-white transition-colors">About</Link>
+          <Link href="/instructors" className="hover:text-white transition-colors">Instructors</Link>
           <Link href="/schedule" className="hover:text-white transition-colors">Schedule</Link>
           <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
         </div>
