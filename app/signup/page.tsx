@@ -4,8 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "./page.module.css";
+import type { SignupPayload, KidPayload } from "@/types/auth";
 
 const SWIM_LEVELS = ["No experience", "Beginner", "Intermediate", "Advanced"];
+
+type Kid = KidPayload;
+
+interface SignupForm extends SignupPayload {
+    confirmPassword: string;
+}
 
 export default function SignupPage() {
     const router = useRouter();
@@ -14,7 +21,7 @@ export default function SignupPage() {
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState("");
 
-    const [form, setForm] = useState({
+    const [form, setForm] = useState<SignupForm>({
         parentName: "",
         email: "",
         phone: "",
@@ -24,11 +31,11 @@ export default function SignupPage() {
         kids: [{ name: "", age: "", swimLevel: "" }],
     });
 
-    const updateField = (field, value) => {
+    const updateField = (field: keyof Omit<SignupForm, "kids">, value: string) => {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
 
-    const updateKid = (index, field, value) => {
+    const updateKid = (index: number, field: keyof Kid, value: string) => {
         setForm((prev) => {
             const kids = [...prev.kids];
             kids[index] = { ...kids[index], [field]: value };
@@ -43,7 +50,7 @@ export default function SignupPage() {
         }));
     };
 
-    const removeKid = (index) => {
+    const removeKid = (index: number) => {
         setForm((prev) => ({
             ...prev,
             kids: prev.kids.filter((_, i) => i !== index),
@@ -79,7 +86,7 @@ export default function SignupPage() {
             if (!res.ok) throw new Error(data.error || "Something went wrong");
             setSuccess(true);
         } catch (err) {
-            setError(err.message);
+            setError((err as Error).message);
         } finally {
             setSubmitting(false);
         }
