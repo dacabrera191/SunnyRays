@@ -1,21 +1,18 @@
 // app/api/signup/route.js
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
-import { createClient } from "@supabase/supabase-js";
+import { neon } from "@neondatabase/serverless";
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY // service role — server-only, never expose to the client
-);
+const sql = neon(process.env.DATABASE_URL);
 
-const BCRYPT_COST = 12; // ~250ms on modern hardware; bump if your server is faster
+const BCRYPT_COST = 12; // ~250ms on modern hardware
 
 export async function POST(req) {
     try {
         const body = await req.json();
         const { parentName, email, phone, poolLocation, password, kids } = body;
 
-        // Basic server-side validation. Never trust the client.
+        // Server-side validation — never trust the client
         if (!parentName || !email || !phone || !poolLocation || !password) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
@@ -29,50 +26,52 @@ export async function POST(req) {
             return NextResponse.json({ error: "At least one child is required" }, { status: 400 });
         }
 
+        const normalizedEmail = email.toLowerCase().trim();
+
         // Hash the password. bcrypt generates and embeds a unique salt automatically.
         const passwordHash = await bcrypt.hash(password, BCRYPT_COST);
 
-        // Insert the parent. Note the column is password_hash, NOT password.
-        const { data: parent, error: parentErr } = await supabase
-            .from("parents")
-            .insert({
-                name: parentName,
-                email: email.toLowerCase().trim(),
-                phone,
-                address: poolLocation,
-                password_hash: passwordHash,
-            })
-            .select("id")
-            .single();
-
-        if (parentErr) {
-            // 23505 = unique_violation in Postgres — likely a duplicate email
-            if (parentErr.code === "23505") {
+        // Insert the parent and get back the new id
+        let parentRows;
+        try {
+            parentRows = await sql`
+                INSERT INTO parents (name, email, phone, address, password_hash)
+                VALUES (${parentName}, ${normalizedEmail}, ${phone}, ${poolLocation}, ${passwordHash})
+                RETURNING id
+            `;
+        } catch (err) {
+            // 23505 = unique_violation (duplicate email)
+            if (err.code === "23505") {
                 return NextResponse.json(
                     { error: "An account with that email already exists" },
                     { status: 409 }
                 );
             }
-            console.error("Parent insert failed:", parentErr);
+            console.error("Parent insert failed:", err);
             return NextResponse.json({ error: "Could not create account" }, { status: 500 });
         }
 
-        // Insert kids linked to the parent
-        const kidRows = kids.map((k) => ({
-            parent_id: parent.id,
-            name: k.name,
-            age: parseInt(k.age, 10),
-            swim_level: k.swimLevel,
-        }));
+        const parentId = parentRows[0].id;
 
-        const { error: kidsErr } = await supabase.from("kids").insert(kidRows);
-        if (kidsErr) {
-            console.error("Kids insert failed:", kidsErr);
-            // In production you'd want a transaction or cleanup of the parent row here
+        // Insert kids one at a time. The neon() tagged-template driver runs each
+        // call as a separate HTTP request, so we just loop. If any kid fails,
+        // we roll back by deleting the parent (the CASCADE handles any kids
+        // that did get inserted).
+        try {
+            for (const kid of kids) {
+                const age = parseInt(kid.age, 10);
+                await sql`
+                    INSERT INTO kids (parent_id, name, age, swim_level)
+                    VALUES (${parentId}, ${kid.name}, ${age}, ${kid.swimLevel})
+                `;
+            }
+        } catch (err) {
+            console.error("Kids insert failed:", err);
+            await sql`DELETE FROM parents WHERE id = ${parentId}`;
             return NextResponse.json({ error: "Could not save children" }, { status: 500 });
         }
 
-        return NextResponse.json({ ok: true, parentId: parent.id });
+        return NextResponse.json({ ok: true, parentId });
     } catch (err) {
         console.error("Signup error:", err);
         return NextResponse.json({ error: "Server error" }, { status: 500 });

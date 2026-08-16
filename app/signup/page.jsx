@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import styles from "./page.module.css";
 
 const SWIM_LEVELS = ["No experience", "Beginner", "Intermediate", "Advanced"];
@@ -18,6 +19,8 @@ export default function SignupPage() {
         email: "",
         phone: "",
         poolLocation: "",
+        password: "",
+        confirmPassword: "",
         kids: [{ name: "", age: "", swimLevel: "" }],
     });
 
@@ -47,14 +50,30 @@ export default function SignupPage() {
         }));
     };
 
+    // Password validation helpers
+    const passwordTooShort = form.password.length > 0 && form.password.length < 8;
+    const passwordsDontMatch =
+        form.confirmPassword.length > 0 && form.password !== form.confirmPassword;
+    const passwordValid =
+        form.password.length >= 8 && form.password === form.confirmPassword;
+
+    const step1Valid =
+        form.parentName &&
+        form.email &&
+        form.phone &&
+        form.poolLocation &&
+        passwordValid;
+
     const handleSubmit = async () => {
         setSubmitting(true);
         setError("");
         try {
+            // Don't send confirmPassword to the server — client validation only
+            const { confirmPassword, ...payload } = form;
             const res = await fetch("/api/signup", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(form),
+                body: JSON.stringify(payload),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Something went wrong");
@@ -120,6 +139,7 @@ export default function SignupPage() {
                             <input
                                 type="email"
                                 placeholder="jane@example.com"
+                                autoComplete="email"
                                 value={form.email}
                                 onChange={(e) => updateField("email", e.target.value)}
                             />
@@ -145,10 +165,42 @@ export default function SignupPage() {
                             />
                         </label>
 
+                        <label>
+                            <span>Password</span>
+                            <input
+                                type="password"
+                                placeholder="At least 8 characters"
+                                autoComplete="new-password"
+                                value={form.password}
+                                onChange={(e) => updateField("password", e.target.value)}
+                            />
+                            {passwordTooShort && (
+                                <span className={styles["field-hint"]}>
+                                    Password must be at least 8 characters.
+                                </span>
+                            )}
+                        </label>
+
+                        <label>
+                            <span>Confirm Password</span>
+                            <input
+                                type="password"
+                                placeholder="Re-enter your password"
+                                autoComplete="new-password"
+                                value={form.confirmPassword}
+                                onChange={(e) => updateField("confirmPassword", e.target.value)}
+                            />
+                            {passwordsDontMatch && (
+                                <span className={styles["field-hint"]}>
+                                    Passwords don't match.
+                                </span>
+                            )}
+                        </label>
+
                         <button
                             className={styles["btn-primary"]}
                             onClick={() => setStep(2)}
-                            disabled={!form.parentName || !form.email || !form.phone || !form.poolLocation}
+                            disabled={!step1Valid}
                         >
                             Continue →
                         </button>
@@ -225,6 +277,10 @@ export default function SignupPage() {
                         </div>
                     </div>
                 )}
+
+                <p className={styles["auth-link"]}>
+                    Already have an account? <Link href="/login">Log in</Link>
+                </p>
             </div>
         </div>
     );
