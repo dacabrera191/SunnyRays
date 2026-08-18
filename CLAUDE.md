@@ -2,6 +2,25 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Environment constraints
+
+This container has restricted egress through a Squid proxy. Reachable hosts:
+- github.com, api.github.com, codeload.github.com
+- api.anthropic.com
+
+Everything else is blocked at the proxy, including pypi.org,
+files.pythonhosted.org, registry.npmjs.org, and the Ubuntu apt mirrors.
+
+Implications:
+- Do NOT attempt `pip install`, `npm install`, `apt-get install`,
+  `cargo add`, `go get`, or any other package fetch. They will fail.
+- Do NOT try to work around it with curl/wget to a mirror, a different
+  index URL, or an alternate proxy.
+- If a task requires a dependency that isn't already installed, stop and
+  tell me which package you need. I'll add it to the image or the allowlist.
+- Preinstalled tooling is in <path>. Check there before assuming something
+  is missing.
+
 ## Commands
 
 - `npm run dev` — start the Next.js dev server
