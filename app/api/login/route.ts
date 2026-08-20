@@ -1,13 +1,15 @@
-// app/api/login/route.js
 import { NextResponse } from "next/server";
-import bcrypt from "bcrypt";
-import { neon } from "@neondatabase/serverless";
+import * as bcrypt from "bcrypt";
+import { sql } from "@/lib/db";
+import type { LoginPayload, LoginParent } from "@/types/auth";
 
-const sql = neon(process.env.DATABASE_URL);
+interface ParentRow extends LoginParent {
+    password_hash: string;
+}
 
-export async function POST(req) {
+export async function POST(req: Request) {
     try {
-        const { email, password } = await req.json();
+        const { email, password }: LoginPayload = await req.json();
 
         if (!email || !password) {
             return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
@@ -20,7 +22,7 @@ export async function POST(req) {
             FROM parents
             WHERE LOWER(email) = ${normalizedEmail}
             LIMIT 1
-        `;
+        ` as ParentRow[];
 
         // Use the same generic error message whether the email exists or not,
         // so an attacker can't probe which emails are registered.
