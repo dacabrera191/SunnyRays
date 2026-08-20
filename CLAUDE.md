@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This container has restricted egress through a Squid proxy. Reachable hosts:
 - github.com, api.github.com, codeload.github.com
 - api.anthropic.com
+- registry.npmjs.org
 
 Everything else is blocked at the proxy, including pypi.org,
 files.pythonhosted.org, registry.npmjs.org, and the Ubuntu apt mirrors.
