@@ -1,7 +1,5 @@
-// File: app/api/comments/route.js
-import { neon } from '@neondatabase/serverless';
-
-const sql = neon(process.env.DATABASE_URL);
+import { sql } from "@/lib/db";
+import type { Comment } from "@/types/comment";
 
 // GET /api/comments — list all comments
 export async function GET() {
@@ -11,20 +9,20 @@ export async function GET() {
       FROM comments
       ORDER BY created_at DESC
       LIMIT 50
-    `;
+    ` as Comment[];
         return Response.json({ ok: true, comments: rows });
     } catch (err) {
-        return Response.json({ ok: false, error: err.message }, { status: 500 });
+        return Response.json({ ok: false, error: (err as Error).message }, { status: 500 });
     }
 }
 
 // POST /api/comments — add a new comment
-export async function POST(request) {
+export async function POST(request: Request) {
     try {
         const { comment } = await request.json();
-        if (!comment || typeof comment !== 'string' || !comment.trim()) {
+        if (!comment || typeof comment !== "string" || !comment.trim()) {
             return Response.json(
-                { ok: false, error: 'Comment is required' },
+                { ok: false, error: "Comment is required" },
                 { status: 400 }
             );
         }
@@ -33,9 +31,9 @@ export async function POST(request) {
       INSERT INTO comments (comment)
       VALUES (${comment.trim()})
       RETURNING id, comment, created_at
-    `;
+    ` as Comment[];
         return Response.json({ ok: true, comment: rows[0] }, { status: 201 });
     } catch (err) {
-        return Response.json({ ok: false, error: err.message }, { status: 500 });
+        return Response.json({ ok: false, error: (err as Error).message }, { status: 500 });
     }
 }

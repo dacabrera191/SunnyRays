@@ -1,11 +1,12 @@
-// File: app/contact/page.js
 'use client'
 
 import { useState, useEffect } from 'react'
+import type { FormEvent } from 'react'
+import type { Comment } from '@/types/comment'
 
 export default function ContactPage() {
   const [comment, setComment] = useState('')
-  const [comments, setComments] = useState([])
+  const [comments, setComments] = useState<Comment[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
@@ -24,7 +25,7 @@ export default function ContactPage() {
     }
   }
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!comment.trim()) return
 
@@ -42,7 +43,7 @@ export default function ContactPage() {
       setComment('')
       await loadComments() // refresh the list
     } catch (err) {
-      setError(err.message)
+      setError((err as Error).message)
     } finally {
       setSubmitting(false)
     }

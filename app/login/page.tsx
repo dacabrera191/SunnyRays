@@ -1,21 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import type { KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "./page.module.css";
+import type { LoginPayload } from "@/types/auth";
 
 export default function LoginPage() {
     const router = useRouter();
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
 
-    const [form, setForm] = useState({
+    const [form, setForm] = useState<LoginPayload>({
         email: "",
         password: "",
     });
 
-    const updateField = (field, value) => {
+    const updateField = (field: keyof LoginPayload, value: string) => {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
 
@@ -34,13 +36,13 @@ export default function LoginPage() {
             // Successful login — adjust the destination as needed
             router.push("/dashboard");
         } catch (err) {
-            setError(err.message);
+            setError((err as Error).message);
         } finally {
             setSubmitting(false);
         }
     };
 
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter" && form.email && form.password && !submitting) {
             handleSubmit();
         }

@@ -14,19 +14,26 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December",
 ];
 
-function getDaysInMonth(year, month) {
+interface ViewDate {
+  year: number;
+  month: number;
+}
+
+type BookedSlots = Record<string, number[]>;
+
+function getDaysInMonth(year: number, month: number) {
   return new Date(year, month + 1, 0).getDate();
 }
 
-function getFirstDayOfMonth(year, month) {
+function getFirstDayOfMonth(year: number, month: number) {
   return new Date(year, month, 1).getDay();
 }
 
 export default function Calendar() {
   const today = new Date();
-  const [viewDate, setViewDate] = useState({ year: today.getFullYear(), month: today.getMonth() });
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [bookedSlots, setBookedSlots] = useState({});
+  const [viewDate, setViewDate] = useState<ViewDate>({ year: today.getFullYear(), month: today.getMonth() });
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [bookedSlots, setBookedSlots] = useState<BookedSlots>({});
 
   const { year, month } = viewDate;
   const daysInMonth = getDaysInMonth(year, month);
@@ -46,12 +53,12 @@ export default function Calendar() {
     setSelectedDate(null);
   };
 
-  const handleDayClick = (day) => {
+  const handleDayClick = (day: number) => {
     const key = `${year}-${month}-${day}`;
     setSelectedDate(selectedDate === key ? null : key);
   };
 
-  const toggleSlot = (hour) => {
+  const toggleSlot = (hour: number) => {
     if (!selectedDate) return;
     setBookedSlots(prev => {
       const slots = prev[selectedDate] || [];
@@ -67,15 +74,15 @@ export default function Calendar() {
   const selectedKey = selectedDate;
   const selectedSlots = (selectedKey && bookedSlots[selectedKey]) || [];
 
-  const isToday = (day) =>
+  const isToday = (day: number) =>
     day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
 
-  const hasBooking = (day) => {
+  const hasBooking = (day: number) => {
     const key = `${year}-${month}-${day}`;
     return bookedSlots[key] && bookedSlots[key].length > 0;
   };
 
-  const cells = [
+  const cells: (number | null)[] = [
     ...Array(firstDay).fill(null),
     ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
   ];

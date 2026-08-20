@@ -1,15 +1,17 @@
-// app/api/signup/route.js
 import { NextResponse } from "next/server";
-import bcrypt from "bcrypt";
-import { neon } from "@neondatabase/serverless";
-
-const sql = neon(process.env.DATABASE_URL);
+import * as bcrypt from "bcrypt";
+import { sql } from "@/lib/db";
+import type { SignupPayload } from "@/types/auth";
 
 const BCRYPT_COST = 12; // ~250ms on modern hardware
 
-export async function POST(req) {
+function isUniqueViolation(err: unknown): boolean {
+    return typeof err === "object" && err !== null && (err as { code?: string }).code === "23505";
+}
+
+export async function POST(req: Request) {
     try {
-        const body = await req.json();
+        const body: SignupPayload = await req.json();
         const { parentName, email, phone, poolLocation, password, kids } = body;
 
         // Server-side validation — never trust the client
@@ -32,16 +34,16 @@ export async function POST(req) {
         const passwordHash = await bcrypt.hash(password, BCRYPT_COST);
 
         // Insert the parent and get back the new id
-        let parentRows;
+        let parentRows: { id: number }[];
         try {
             parentRows = await sql`
                 INSERT INTO parents (name, email, phone, address, password_hash)
                 VALUES (${parentName}, ${normalizedEmail}, ${phone}, ${poolLocation}, ${passwordHash})
                 RETURNING id
-            `;
+            ` as { id: number }[];
         } catch (err) {
             // 23505 = unique_violation (duplicate email)
-            if (err.code === "23505") {
+            if (isUniqueViolation(err)) {
                 return NextResponse.json(
                     { error: "An account with that email already exists" },
                     { status: 409 }
@@ -59,7 +61,7 @@ export async function POST(req) {
         // that did get inserted).
         try {
             for (const kid of kids) {
-                const age = parseInt(kid.age, 10);
+                const age = parseInt(String(kid.age), 10);
                 await sql`
                     INSERT INTO kids (parent_id, name, age, swim_level)
                     VALUES (${parentId}, ${kid.name}, ${age}, ${kid.swimLevel})
