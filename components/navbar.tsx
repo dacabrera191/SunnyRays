@@ -3,11 +3,11 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useSession, signOut } from 'next-auth/react'
 
-const navLinks = [
+const baseNavLinks = [
   { label: 'Home', href: '/' },
   { label: 'Instructors', href: '/instructors' },
-  { label: 'Signup/Login', href: '/login' },
   { label: 'Schedule', href: '/schedule' },
   { label: 'Contact', href: '/contact' },
 ]
@@ -15,6 +15,13 @@ const navLinks = [
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const pathname = usePathname()
+  const { data: session } = useSession()
+
+  const navLinks = [
+    ...baseNavLinks,
+    ...(session ? [{ label: 'Dashboard', href: '/dashboard' }] : [{ label: 'Signup/Login', href: '/login' }]),
+    ...(session?.user?.role === 'admin' ? [{ label: 'Admin', href: '/admin' }] : []),
+  ]
 
   const toggleMenu = () => setMenuOpen((prev) => !prev)
   const closeMenu = () => setMenuOpen(false)
@@ -47,6 +54,15 @@ export default function Navbar() {
             </li>
           ))}
         </ul>
+
+        {session && (
+          <button
+            onClick={() => signOut({ callbackUrl: '/' })}
+            className="hidden md:block text-sm font-bold uppercase tracking-widest text-ink-muted hover:text-primary transition-colors"
+          >
+            Log Out
+          </button>
+        )}
 
         {/* Hamburger button (mobile only) */}
         <button
@@ -102,6 +118,18 @@ export default function Navbar() {
         >
           Book a Session
         </Link>
+
+        {session && (
+          <button
+            onClick={() => {
+              closeMenu()
+              signOut({ callbackUrl: '/' })
+            }}
+            className="text-center font-bold uppercase tracking-widest text-sm py-3 text-ink-muted hover:text-primary transition-colors"
+          >
+            Log Out
+          </button>
+        )}
       </div>
     </>
   )

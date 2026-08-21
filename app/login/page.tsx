@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import styles from "./page.module.css";
 import type { LoginPayload } from "@/types/auth";
@@ -25,15 +26,13 @@ export default function LoginPage() {
         setSubmitting(true);
         setError("");
         try {
-            const res = await fetch("/api/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(form),
+            const result = await signIn("credentials", {
+                email: form.email,
+                password: form.password,
+                redirect: false,
             });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Login failed");
+            if (result?.error) throw new Error("Invalid email or password");
 
-            // Successful login — adjust the destination as needed
             router.push("/dashboard");
         } catch (err) {
             setError((err as Error).message);
