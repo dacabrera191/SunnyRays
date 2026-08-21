@@ -21,7 +21,7 @@ This is a large scope, so it's delivered as **four sequential, independently rev
 | Payment timing | After instructor approval, not at request time (avoids refunding denied requests) |
 | Pricing | Per-slot, set by the instructor (no flat site-wide rate) |
 | Rollout | Phased, four sequential stages |
-| Auth mechanism | Custom JWT + httpOnly cookie (not NextAuth/Auth.js) — lightweight, matches existing minimal-dependency style |
+| Auth mechanism | NextAuth v5 (Auth.js), `Credentials` provider + JWT session strategy — chosen over hand-rolled `jose` after a tradeoff review; accepted tradeoff: the `Credentials` provider is JWT-only so no DB-revocable sessions are actually gained over the hand-rolled approach, and `next-auth` pulls in `jose` transitively via `@auth/core` anyway. Net gain is ecosystem maturity + cookie/CSRF hardening, not a smaller problem. |
 | Role provisioning | Admin-created only — public `/signup` always creates a `client` account; instructor/admin accounts are created by an admin |
 
 ---
@@ -81,31 +81,43 @@ Every change is rename + type annotation, or a pure refactor (hoisting `neon()` 
 
 ## Phase 2 — Auth/Session Layer + Roles
 
-### Library choice: `jose`, not `jsonwebtoken`
-`jsonwebtoken` depends on Node's `crypto` in a way that isn't compatible with the Edge Runtime that `middleware.ts` runs on by default. `jose` is Web Crypto-based and works in both Node API routes and Edge middleware, with zero sub-dependencies.
+### Library choice: NextAuth v5 (Auth.js), not hand-rolled `jose`
+A prior version of this plan called for a hand-rolled `jose`-based JWT layer. After a tradeoff review (custom `jose` vs. Better-Auth vs. NextAuth v5 vs. hosted providers like Clerk/Auth0/Supabase Auth), NextAuth v5 was chosen instead. Notable tradeoffs accepted going in:
+- The `Credentials` provider (required here — login is email+password against `parents`, not OAuth) only supports the **JWT** session strategy, not database-backed sessions. So the usual "NextAuth gives you revocable DB sessions" argument doesn't apply to this app; functionally it's still a stateless JWT in a cookie, same as the original plan (no server-side revocation, same stale-token-until-expiry behavior on role changes).
+- `next-auth@beta` (v5) pulls in `@auth/core`, which itself depends on `jose` internally — the swap doesn't remove `jose` from the dependency tree, it makes it transitive and out of direct control.
+- NextAuth's own docs don't consider `Credentials` the recommended path for production auth (it's aimed more at prototyping/migration) — this app's entire auth need is Credentials-based, so NextAuth is being used in the configuration it's least enthusiastic about.
+- v5 has historically shipped on the `beta` npm dist-tag; check `npm view next-auth dist-tags` before installing in case it has graduated to `latest`, and pin an exact version either way (not a caret range).
+- Net gain over the original `jose` plan: ecosystem maturity, built-in CSRF handling, and cookie hardening — not a smaller problem to solve.
+
+Config is split into two files (a NextAuth v5 convention, not optional): an Edge-safe `auth.config.ts` (no `bcrypt`/DB imports, since `middleware.ts` runs on the Edge Runtime) and a full Node-only `auth.ts` (adds the `Credentials` provider, which does need `bcrypt` + the DB).
 
 ### DB schema
-`db/migrations/0001_add_roles_and_sessions.sql`:
+`db/migrations/0001_add_role_to_parents.sql`:
 ```sql
 ALTER TABLE parents ADD COLUMN role TEXT NOT NULL DEFAULT 'client'
   CHECK (role IN ('client', 'instructor', 'admin'));
 ```
-No new `users` table — `parents` already has everything an authenticated account needs (id, name, email, phone, password_hash); instructors/admins are just rows with no `kids`. Renaming `parents` → `accounts` would touch every existing route and `kids.parent_id` for no functional gain — accepted as naming debt, not fixed now.
+No new `users` table — `parents` already has everything an authenticated account needs (id, name, email, phone, password_hash); instructors/admins are just rows with no `kids`. Renaming `parents` → `accounts` would touch every existing route and `kids.parent_id` for no functional gain — accepted as naming debt, not fixed now. This column is unaffected by the auth-library choice — both the original `jose` plan and NextAuth need it.
 
 ### New/modified files
-- **New** `lib/auth.ts` — `signSession()`/`verifySession()` via `jose`, HS256, `JWT_SECRET` env var, `SESSION_COOKIE_NAME = 'sr_session'`.
-- **New** `middleware.ts` (repo root) — reads/verifies the session cookie; redirects to `/login` (pages) or `401`s (APIs) if missing/invalid; role-gates `/admin/*` and `/api/admin/*`. Matcher scoped to protected prefixes only — public routes are untouched.
-- `app/api/login/route.ts` — on successful bcrypt compare, signs a JWT (`sub`, `email`, `role`) and sets it as an **httpOnly, secure-in-prod, sameSite=lax** cookie. Response body additively gains `role` (nothing today reads beyond the `ok` flag, so this is non-breaking).
-- **New** `app/api/auth/logout/route.ts` — clears the cookie.
-- **New** `app/api/auth/me/route.ts` — server-verifies the cookie, returns `{ authenticated, user }`. Since the cookie is httpOnly, client components (e.g. the navbar) **must** go through this endpoint to know who's logged in — they cannot read the cookie directly.
-- `app/api/signup/route.ts` — unchanged INSERT (relies on the new column's `DEFAULT 'client'`); optionally made explicit for clarity.
-- **New** `app/api/admin/staff/route.ts` — admin-only `POST` to provision instructor/admin accounts (rejects `role: 'client'` — that stays exclusively on public `/signup`).
+- **New dependency** `next-auth` (pinned exact version) — install happens outside this sandbox (`CLAUDE.md` blocks `npm install` here).
+- **New** `auth.config.ts` (repo root) — Edge-safe config: `pages: { signIn: "/login" }`, plus an `authorized({ auth, request })` callback holding the route-protection/role-gating decision used by `middleware.ts`.
+- **New** `auth.ts` (repo root) — full config: spreads `auth.config.ts`, adds a `Credentials` provider whose `authorize()` reuses today's `app/api/login/route.ts` logic (lowercase-email lookup via `lib/db.ts`'s shared `sql`, `bcrypt.compare` against `password_hash`, dummy-compare on unknown email for timing safety), `session: { strategy: "jwt" }`, and `callbacks.jwt`/`callbacks.session` copying `id`/`role` onto the token/session (`parents.id` needs a `String()` cast — NextAuth's `User.id` is a string, Postgres's is a `SERIAL`). Exports `{ handlers, auth, signIn, signOut }`.
+- **New** `types/next-auth.d.ts` — module augmentation adding `role: "client" | "instructor" | "admin"` to `User`, `Session.user`, and `JWT` (not part of NextAuth's default shape).
+- **New** `app/api/auth/[...nextauth]/route.ts` — `export const { GET, POST } = handlers` from `auth.ts`. Required at this exact path for `signIn()`/`signOut()` and CSRF handling to work.
+- **New** `middleware.ts` (repo root) — imports `auth.config.ts` only (not `auth.ts`, to keep `bcrypt`/DB access out of the Edge bundle); redirects unauthenticated requests away from `/dashboard/:path*` and non-admin requests away from `/admin/:path*` / `/api/admin/:path*`. Matcher scoped to protected prefixes only — public routes are untouched.
+- `app/login/page.tsx` — replaces the raw `fetch("/api/login")` with `signIn("credentials", { email, password, redirect: false })` from `next-auth/react`; unchanged `router.push("/dashboard")` on success.
+- **Delete** `app/api/login/route.ts` — fully subsumed by `authorize()` in `auth.ts`; delete in the same change as `auth.ts`/`app/login/page.tsx`, not before, so there's no window with a broken login.
+- `app/api/signup/route.ts` — unchanged INSERT (relies on the new column's `DEFAULT 'client'`); optionally made explicit for clarity. Account creation stays orthogonal to NextAuth.
+- **New** `app/api/admin/staff/route.ts` — admin-only `POST` to provision instructor/admin accounts, gated by `const session = await auth(); if (session?.user?.role !== "admin") return 403` (rejects `role: 'client'` — that stays exclusively on public `/signup`).
 - **New** `app/admin/page.tsx` + `app/admin/staff/page.tsx` — minimal admin UI to call the staff-provisioning API.
-- **New** `scripts/seed-admin.ts` — one-time seed script (reads `ADMIN_SEED_EMAIL`/`ADMIN_SEED_PASSWORD`/`ADMIN_SEED_NAME`) to bootstrap the very first admin account, since admin-created-only provisioning is otherwise circular on a fresh database. Run via `npm run seed:admin` (needs `tsx` as a devDependency).
-- `components/navbar.tsx` — fetches `/api/auth/me` to conditionally render logged-out vs. role-aware nav links.
-- `app/dashboard/page.tsx` — becomes genuinely protected (closes the current "public stub" gap); greets the user by name/role via server-side cookie read.
+- **New** `scripts/seed-admin.ts` — one-time seed script (reads `ADMIN_SEED_EMAIL`/`ADMIN_SEED_PASSWORD`/`ADMIN_SEED_NAME`) to bootstrap the very first admin account directly into `parents`, bypassing NextAuth entirely — needed since admin-created-only provisioning is otherwise circular on a fresh database. Run via `npm run seed:admin` (needs `tsx` as a devDependency).
+- `app/layout.tsx` — becomes `async`, calls `const session = await auth()`, wraps children in `<SessionProvider session={session}>` from `next-auth/react` (it ships its own `"use client"` boundary, so the server-component layout can render it directly). Passing `session` explicitly avoids an extra client-side session fetch and a logged-out nav flash on first paint.
+- `components/navbar.tsx` — switches to `useSession()` from `next-auth/react` for role-aware nav links (e.g. an `/admin` link only when `session?.user?.role === "admin"`).
+- `app/dashboard/page.tsx` — becomes genuinely protected (closes the current "public stub" gap): server-side `const session = await auth(); if (!session) redirect("/login");`, greets by name/role. Belt-and-suspenders with `middleware.ts` — middleware handles the common-case redirect, but the page itself is what makes the rendered data actually safe.
+- Env vars: `AUTH_SECRET` (v5's name, generated via `npx auth secret`, also an out-of-sandbox command) replaces the originally-planned `JWT_SECRET`; `AUTH_TRUST_HOST=true` needed in production since this isn't deployed on Vercel (v5 doesn't auto-trust `X-Forwarded-Host` off known platforms).
 
-**Critical files**: `middleware.ts`, `lib/auth.ts`, `app/api/login/route.ts`, `db/migrations/0001_add_roles_and_sessions.sql`, `scripts/seed-admin.ts`
+**Critical files**: `auth.ts`, `auth.config.ts`, `middleware.ts`, `types/next-auth.d.ts`, `app/api/auth/[...nextauth]/route.ts`, `db/migrations/0001_add_role_to_parents.sql`, `scripts/seed-admin.ts`
 
 ---
 
@@ -227,7 +239,7 @@ Extract incrementally, not upfront: `components/ui/Button.tsx` in Phase 2 (admin
 
 ### Environment variables per phase
 - Phase 1: none new.
-- Phase 2: `JWT_SECRET`; `ADMIN_SEED_EMAIL`/`ADMIN_SEED_PASSWORD`/`ADMIN_SEED_NAME` (only needed where the seed script runs, not at app runtime).
+- Phase 2: `AUTH_SECRET`; `AUTH_TRUST_HOST` (production only, non-Vercel deploy); `ADMIN_SEED_EMAIL`/`ADMIN_SEED_PASSWORD`/`ADMIN_SEED_NAME` (only needed where the seed script runs, not at app runtime).
 - Phase 3: none new.
 - Phase 4: `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (must have the `NEXT_PUBLIC_` prefix to reach the client bundle — the secret key must never get that prefix), `STRIPE_WEBHOOK_SECRET`.
 
@@ -240,7 +252,7 @@ No test framework or CI exists today; this plan doesn't mandate adding one, but 
 
 ## Overall Critical Files
 - `lib/db.ts` — shared Neon client (Phase 1), used by every later API route
-- `lib/auth.ts` — JWT sign/verify core (Phase 2), used by `middleware.ts` and every protected route in Phases 2–4
+- `auth.ts` / `auth.config.ts` — NextAuth v5 config (Phase 2), used by `middleware.ts` and every protected route in Phases 2–4
 - `middleware.ts` — role-based route protection (Phase 2), matcher grows in Phases 3–4
 - `components/calendar.tsx` — mode-based refactor (Phase 3), reused across client/instructor/admin views
 - `db/migrations/*.sql` — the entire schema evolution (roles → scheduling/booking → payments), the only source of truth for schema in this repo
