@@ -3,10 +3,13 @@ export interface LoginPayload {
   password: string;
 }
 
+export type Role = "client" | "instructor" | "admin";
+
 export interface LoginParent {
   id: number;
   name: string;
   email: string;
+  role: Role;
 }
 
 export interface KidPayload {
